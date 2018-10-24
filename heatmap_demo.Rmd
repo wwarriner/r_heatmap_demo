@@ -1,0 +1,42 @@
+---
+title: "Demo"
+output: html_notebook
+---
+
+We can generate some random data, assuming 10 dies and 10 machines, with mean scrap rate of 0.02, and standard deviation 0.002.
+
+```{r}
+die_count <- 10
+machine_count <- 10
+mean_scrap_rate <- 0.02
+stdev_scrap_rate <- 0.002
+scrap_rate_frame <- as.data.frame(matrix(rnorm(die_count*machine_count, mean_scrap_rate, stdev_scrap_rate), nrow=die_count))
+```
+
+Then we can add some systematic failures to random machines and random dies.
+
+```{r}
+machine_sys_failure_count <- 2
+machine_sys_mean_scrap_rate <- 0.005
+machine_sys_stdev_scrap_rate <- 0.002
+machines <- sample(1:machine_count, machine_sys_failure_count)
+scrap_rate_frame[machines,] <- apply(scrap_rate_frame[machines,],1,function(x) {
+  x<-x+rnorm(die_count,machine_sys_mean_scrap_rate,machine_sys_stdev_scrap_rate)
+  x
+  })
+
+die_sys_failure_count <- 2
+die_sys_mean_scrap_rate <- 0.005
+die_sys_stdev_scrap_rate <- 0.002
+dies <- sample(1:die_count, die_sys_failure_count)
+scrap_rate_frame[,dies] <- apply(scrap_rate_frame[,dies],2, function(x) {
+  x<-x+t(rnorm(machine_count,die_sys_mean_scrap_rate,die_sys_stdev_scrap_rate))
+  x
+  })
+```
+
+Now plot a heatmap!
+
+```{r}
+heatmap(as.matrix(scrap_rate_frame), scale="none")
+```
